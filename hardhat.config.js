@@ -1,29 +1,57 @@
-require("dotenv").config();
 require("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-etherscan");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 module.exports = {
-  defaultNetwork: "matic",
-  networks: {
-    hardhat: {},
-    mumbai: {
-      url: "https://rpc-mumbai.maticvigil.com",
-      accounts: [process.env.PRIVATE_KEY],
-    },
-    matic: {
-      url: "https://rpc-mainnet.matic.network",
-      accounts: [process.env.PRIVATE_KEY],
-    },
-  },
-  etherscan: {
-    apiKey: process.env.POLYGONSCAN_API_KEY,
-  },
   solidity: {
-    version: "0.8.4",
+    version: "0.8.7",
     settings: {
       optimizer: {
         enabled: true,
         runs: 200,
       },
     },
+  },
+  networks: {
+    goerli: {
+      url: process.env.REACT_APP_GOERLI_RPC_URL,
+      accounts: [process.env.REACT_APP_PRIVATE_KEY],
+    },
+    mumbai: {
+      url: process.env.REACT_APP_MUMBAI_RPC_URL,
+      accounts: [process.env.REACT_APP_PRIVATE_KEY],
+    },
+  },
+  etherscan: {
+    apiKey: {
+      goerli: process.env.REACT_APP_GOERLI_ETHERSCAN_KEY,
+      mumbai: process.env.REACT_APP_MUMBAI_ETHERSCAN_KEY,
+    },
+    customChains: [
+      {
+        network: "goerli",
+        chainId: 4,
+        urls: {
+          apiURL: "https://api-goerli.etherscan.io/api",
+          browserURL: "https://goerli.etherscan.io",
+        },
+      },
+      {
+        network: "mumbai",
+        chainId: 80001,
+        urls: {
+          apiURL: "https://api-testnet.polygonscan.com/api",
+          browserURL: "https://mumbai.polygonscan.com/",
+        },
+      },
+    ],
+  },
+  paths: {
+    sources: "./contracts",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts",
   },
 };

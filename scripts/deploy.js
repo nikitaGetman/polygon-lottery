@@ -1,29 +1,50 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// When running the script with `npx hardhat run <script>` you'll find the Hardhat
-// Runtime Environment's members available in the global scope.
-const hre = require("hardhat");
+const { ethers, run } = require("hardhat");
+
+const DEPLOY_OPTIONS = {
+  mumbai: {
+    link: "0x326c977e6efc84e512bb9c30f76e30c160ed06fb",
+    vrfCoordinator: "0x7a1bac17ccc5b313516c5e16fb24f7659aa5ebed",
+    keyHash:
+      "0x4b09e658ed251bcafeebbc69400383d49f344ace09b9576fe248bb02c003fe9f",
+    subscriptionId: 580,
+  },
+};
 
 async function main() {
-  // Hardhat always runs the compile task when running scripts with its command
-  // line interface.
-  //
-  // If this script is run directly using `node` you may want to call compile
-  // manually to make sure everything is compiled
-  // await hre.run('compile');
+  console.log("Start deploy...");
+  const Randomness = await ethers.getContractFactory("Randomness");
 
-  // We get the contract to deploy
-  const Greeter = await hre.ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+  const { link, vrfCoordinator, keyHash, subscriptionId } =
+    DEPLOY_OPTIONS.mumbai;
 
-  await greeter.deployed();
+  const randomness = await Randomness.deploy(
+    subscriptionId,
+    vrfCoordinator,
+    link,
+    keyHash
+  );
 
-  console.log("Greeter deployed to:", greeter.address);
+  await randomness.deployed();
+  console.log("Randomness deployed to:", randomness.address);
+  console.log("Waiting for 5 confirmations...");
+
+  await ethers.provider.waitForTransaction(
+    randomness.deployTransaction.hash,
+    5,
+    150000
+  );
+
+  console.log("Confirmed 5 times");
+
+  await run("verify:verify", {
+    address: randomness.address,
+    contract: "contracts/Randomness.sol:Randomness",
+    constructorArguments: [subscriptionId, vrfCoordinator, link, keyHash],
+  });
+
+  console.log("Contract verified");
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main()
   .then(() => process.exit(0))
   .catch((error) => {
