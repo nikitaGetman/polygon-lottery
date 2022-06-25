@@ -1,10 +1,18 @@
-require("@nomiclabs/hardhat-waffle");
-require("@nomiclabs/hardhat-etherscan");
-const dotenv = require("dotenv");
+import "@nomiclabs/hardhat-etherscan";
+import "@nomiclabs/hardhat-waffle";
+import "hardhat-gas-reporter";
+import "solidity-coverage";
+
+import * as dotenv from "dotenv";
+import { HardhatUserConfig } from "hardhat/config";
 
 dotenv.config();
 
-module.exports = {
+const accounts = process.env.REACT_APP_PRIVATE_KEY
+  ? [process.env.REACT_APP_PRIVATE_KEY]
+  : [];
+
+const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.7",
     settings: {
@@ -17,17 +25,17 @@ module.exports = {
   networks: {
     goerli: {
       url: process.env.REACT_APP_GOERLI_RPC_URL,
-      accounts: [process.env.REACT_APP_PRIVATE_KEY],
+      accounts,
     },
     mumbai: {
       url: process.env.REACT_APP_MUMBAI_RPC_URL,
-      accounts: [process.env.REACT_APP_PRIVATE_KEY],
+      accounts,
     },
   },
   etherscan: {
     apiKey: {
-      goerli: process.env.REACT_APP_GOERLI_ETHERSCAN_KEY,
-      mumbai: process.env.REACT_APP_MUMBAI_ETHERSCAN_KEY,
+      goerli: process.env.REACT_APP_GOERLI_ETHERSCAN_KEY || "",
+      mumbai: process.env.REACT_APP_MUMBAI_ETHERSCAN_KEY || "",
     },
     customChains: [
       {
@@ -48,10 +56,10 @@ module.exports = {
       },
     ],
   },
-  paths: {
-    sources: "./contracts",
-    tests: "./test",
-    cache: "./cache",
-    artifacts: "./artifacts",
+  gasReporter: {
+    enabled: true,
+    currency: "USD",
   },
 };
+
+export default config;
